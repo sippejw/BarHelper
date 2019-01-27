@@ -15,8 +15,8 @@
         <p>{{message}}</p>
 
         <ul>
-            <div v-for="(image, index) in images">
-                <img :src="image.image_url" style="width: 200px;"/>
+            <div v-for="(image, index) in images.slice().reverse()">
+                <img :src="image.image_url" style="width: 200px;" />
                 <p>{{image.percent_full * 100}}% full</p>
             </div>
         </ul>
@@ -28,6 +28,7 @@
     <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-storage.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vuefire/1.4.5/vuefire.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
     <script>
         // Initialize Firebase
         var config = {
@@ -52,22 +53,37 @@
                 images: imagesRef
             },
             methods: {
-                upload: function (e) {
+                upload: async function (e) {
                     const file = this.$refs.image.files[0];
-                    const ref = firebase.storage().ref();
-                    const name = (+new Date()) + '-' + file.name;
-                    const metadata = { contentType: file.type };
-                    const task = ref.child(name).put(file, metadata);
-                    task
-                        .then(snapshot => snapshot.ref.getDownloadURL())
-                        .then(url => {
-                            console.log(url);
-                            this.message = url;
-                        });
+
+                    var fd = new FormData();
+                    fd.append('image', file);
+
+                    let data = await axios({
+                        url: 'https://api.imgur.com/3/image',
+                        method: 'post',
+                        headers: {
+                            'Authorization': 'Client-ID 023124e43805f05'
+                        },
+                        data: fd
+                    });
+
+                    let result = data.data.data,
+                        image_url = result.link,
+                        id = result.id;
+
+                    data = await axios({
+                        url: '',
+                        method: 'post',
+                        data: {
+                            id,
+                            image_url
+                        }
+                    })
 
                 }
             }
-        })
+        });
     </script>
 </body>
 

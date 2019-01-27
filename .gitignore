@@ -1,6 +1,8 @@
 *.zip
 *.DS_Store
 
+barhelper-firebase-adminsdk-tyh7r-5a2f0eea5f.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
