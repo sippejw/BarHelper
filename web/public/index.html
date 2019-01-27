@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bar Helper</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+
+<body>
+    <div id="app">
+        <input type="file" accept="image/*;capture=camera" ref="image" @change="upload" v-if="!showAmountEntry">
+
+        <div v-if="showAmountEntry">
+            <form v-on:submit.prevent="submit(amount)">
+                <button @click="submit(750)">750mL</button>
+                <button @click="submit(1500)">1.5L</button>
+                <input type="text" :value="amount" placeholder="Custom amount (mL)">
+            </form>
+        </div>
+        
+        <img src="spinner.gif" style="width: 50px;" v-if="showSpinner"/>
+
+        <ul>
+            <div v-for="image in images">
+                <img :src="image.image_url" style="width: 200px;" />
+                <p>{{image.percent_full * 100}}% {{image.percent_full * image.amount}}mL</p>
+            </div>
+        </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vuefire/1.4.5/vuefire.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
+    <script>
+
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyChOaCLUEXZ1u5BER5OoPHb3Nhp78YnpdI",
+            authDomain: "barhelper.firebaseapp.com",
+            databaseURL: "https://barhelper.firebaseio.com",
+            projectId: "barhelper",
+            storageBucket: "gs://barhelper.appspot.com",
+            messagingSenderId: "877877348030"
+        };
+        let fb = firebase.initializeApp(config);
+        let db = fb.database();
+
+        let imagesRef = db.ref('images')
+
+        Vue.use(VueFire);
+
+        var app = new Vue({
+            el: '#app',
+            data: () => ({
+                image: '',
+                showSpinner: false,
+                showAmountEntry: false,
+                current: {
+                    id: null,
+                    amount: 0
+                }
+            }),
+            firebase: {
+                images: imagesRef
+            },
+            methods: {
+                submit: amount => {
+                    this.current.amount = amount;
+
+                    imagesRef.child(this.current.id).set({
+                        amount
+                    });
+                },
+                upload: async function (e) {
+                    const file = this.$refs.image.files[0];
+
+                    var fd = new FormData();
+                    fd.append('image', file);
+
+                    let data = await axios({
+                        url: 'https://api.imgur.com/3/image',
+                        method: 'post',
+                        headers: {
+                            'Authorization': 'Client-ID 023124e43805f05'
+                        },
+                        data: fd
+                    });
+
+                    let result = data.data.data,
+                        image_url = result.link,
+                        id = result.id;
+
+                    this.showSpinner = true;
+                    this.showAmountEntry = true;
+
+                    data = await axios({
+                        url: 'https://barhelper.herokuapp.com/imageupload',
+                        method: 'post',
+                        data: {
+                            id,
+                            image_url
+                        }
+                    })
+
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
