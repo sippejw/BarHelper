@@ -6,13 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Bar Helper</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
 </head>
 
 <body>
     <div id="app">
         <input type="file" accept="image/*;capture=camera" ref="image" @change="upload">
         <p>{{message}}</p>
+
+        <ul>
+            <div v-for="(image, index) in images">
+                <img :src="image.image_url" style="width: 200px;"/>
+                <p>{{image.percent_full * 100}}% full</p>
+            </div>
+        </ul>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase.js"></script>
@@ -20,6 +27,7 @@
     <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vuefire/1.4.5/vuefire.js"></script>
     <script>
         // Initialize Firebase
         var config = {
@@ -30,12 +38,18 @@
             storageBucket: "gs://barhelper.appspot.com",
             messagingSenderId: "877877348030"
         };
-        firebase.initializeApp(config);
+        let fb = firebase.initializeApp(config);
+        let db = fb.database();
+
+        let imagesRef = db.ref('images')
+
+
+        Vue.use(VueFire);
 
         var app = new Vue({
             el: '#app',
-            data: {
-                message: 'Upload a photo'
+            firebase: {
+                images: imagesRef
             },
             methods: {
                 upload: function (e) {
