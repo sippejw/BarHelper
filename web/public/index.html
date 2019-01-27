@@ -17,16 +17,15 @@
             <form v-on:submit.prevent="submit(amount)">
                 <button @click="submit(750)">750mL</button>
                 <button @click="submit(1500)">1.5L</button>
-                <input type="text" :value="amount" placeholder="Custom amount (mL)">
             </form>
         </div>
-        
-        <img src="spinner.gif" style="width: 50px;" v-if="showSpinner"/>
+
+        <img src="spinner.gif" style="width: 50px;" v-if="showSpinner" />
 
         <ul>
             <div v-for="image in images">
                 <img :src="image.image_url" style="width: 200px;" />
-                <p>{{image.percent_full * 100}}% {{image.percent_full * image.amount}}mL</p>
+                <p>{{Math.round(image.percent_full * 100)}}% <b>{{Math.round(image.percent_full * image.amount)}}mL</b> Original: {{Math.round(image.amount)}}mL</p>
             </div>
         </ul>
     </div>
@@ -58,6 +57,12 @@
 
         var app = new Vue({
             el: '#app',
+            mounted() {
+                imagesRef.on('value', function (snapshot) {
+                    this.showSpinner = false;
+                    this.showAmountEntry = false;
+                });
+            },
             data: () => ({
                 image: '',
                 showSpinner: false,
