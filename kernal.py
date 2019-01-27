@@ -1,3 +1,4 @@
+import statistics
 import numpy as np
 import scipy
 from scipy import misc
@@ -5,7 +6,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 #image = np.asarray(Image.open('./images/raw/image.jpg').convert('L'))
-image = './images/raw/blank-background.jpg'
+image = './perf3.jpg'
 def colConvolude(image,  thresh):
 
     kernal = np.array([[1, 1, 0, -1, -1],   #5x5 kernel
@@ -59,7 +60,7 @@ def colSum(image):
     (dim_x, dim_y) = np.shape(transImage)
     print(dim_x, dim_y)
     kernal = [[1] * dim_y, [2] * dim_y, [1] * dim_y] # for some reason y is the x dim
-    sumVector= np.zeros(dim_y) #the new image. the same size as the image I will filter
+    sumVector= np.zeros(dim_x) #the new image. the same size as the image I will filter
 
     for i in range(1,dim_x-1): #the range starts from 1 to avoid the column and row of zeros, and ends before the last col and row of zeros
         sumVector.setflags(write=1)
@@ -102,7 +103,8 @@ def threshold(image, thresh):
 
 def rankRow(vector, n):
     max = [-1] * n
-    for i in range(len(vector)):
+#    for k in [0,1,2]:
+    for i in range(int(len(vector))):
         added = False
         j = 0
         while not added and j < n:
@@ -114,15 +116,50 @@ def rankRow(vector, n):
 
 def rankCol(vector, n):
     max = [-1] * n
-    for i in range(len(vector)):
-        added = False
-        j = 0
-        while not added and j < n:
-            if vector[max[j]] < vector[i] and (max[j] not in range(i - 10, i + 10) or max[j] < 0 and i < 2):
-                added = True
-                max[j] = i
-            j += 1
-    return max
+    cols = []
+    for k in [1, 2]:
+        #print("len vector" + len(vector))
+        #print("data: " + range(int(len(vector) / 2)) + int(len(vector) / 2) * k)
+        if k == 1:
+            for i in range(int(len(vector)/2)):
+                added = False
+                j = 0
+                while not added and j < n/2:
+                    if vector[max[j]] < vector[i]: # and (max[j] not in range(i - 10, i + 10) or max[j] < 0 and i < 2):
+                        added = True
+                        max[j] = i
+                    j += 1
+        else:
+            for i in range(int(len(vector)/2),int(len(vector))):
+                added = False
+                j = 5
+                while not added and j < n:
+                    #print("in while loop")
+                    if vector[max[j]] < vector[i]: # and (max[j] not in range(i - 10, i + 10) or max[j] < 0 and i < 2):
+                        added = True
+                        max[j] = i
+                    j += 1
+        cols.append(max)
+    return cols
+
+def volume(image, colin, rowin):
+
+    print("colin: " + str(colin))
+    print("rowin: " + str(rowin))
+
+    column_first_5 = statistics.median(colin[0][0:5])
+    column_last_5 = statistics.median(colin[0][5:10])
+
+    row_last = statistics.median(rowin)
+
+    height = len(image)
+    width = column_last_5 - column_first_5
+    totalArea = height * width
+    air = row_last * width
+    filled = totalArea - air
+
+    return filled / totalArea
+
     
 def main(infile):
     image= np.asarray(Image.open(infile).convert('L'))
@@ -132,10 +169,13 @@ def main(infile):
     rows = rowSum(rowImage)
     rows = rankRow(rows,5)
     cols = colSum(colImage)
-    cols = rankCol(cols, 5)
-    
-    return rows[2]/len(image)
+    cols = rankCol(cols, 10)
 
+    print( 750 * volume(rowImage, cols, rows) )
+
+    return volume(rowImage, cols, rows)
+main(input("Enter filename: "))
+'''
 image= np.asarray(Image.open(image).convert('L'))
 rowImage= rowConvolude(image, 128)
 colImage= colConvolude(image, 80)
@@ -144,17 +184,20 @@ colImage= colConvolude(image, 80)
 rows = rowSum(rowImage)
 rows = rankRow(rows, 5)
 cols = colSum(colImage)
-cols = rankCol(cols, 5)
+#print("rows: " + str(rows))
+cols = rankCol(cols, 10)
+print(cols)
 
-newtest = np.asarray(Image.fromarray(colImage.copy()).convert('L')).copy()
+newtest = np.asarray(Image.fromarray(rowImage.copy()).convert('L')).copy()
 newtest.setflags(write=1)
 for i in rows:
-    for pix in range(len(newtest[i])):
-        newtest[i][pix] = 255
+   for pix in range(len(newtest[i])):
+       newtest[i][pix] = 255
 
 for i in cols:
     for pix in range(len(newtest)):
         newtest[pix][i] = 255
+        #newtest[len(newtest[0]) - i][pix] = 255
 Image.fromarray(newtest).save('newtest.jpg')
 
 #print(main(image))
@@ -162,3 +205,4 @@ Image.fromarray(newtest).save('newtest.jpg')
 #plt.imshow(imagen_nueva)  #Show new image
 #plt.gray()
 #plt.show()
+#'''
