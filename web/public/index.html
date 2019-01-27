@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bar Helper</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+</head>
+
+<body>
+    <div id="app">
+        <input type="file" accept="image/*;capture=camera" ref="image" @change="upload">
+        <p>{{message}}</p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-storage.js"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyChOaCLUEXZ1u5BER5OoPHb3Nhp78YnpdI",
+            authDomain: "barhelper.firebaseapp.com",
+            databaseURL: "https://barhelper.firebaseio.com",
+            projectId: "barhelper",
+            storageBucket: "gs://barhelper.appspot.com",
+            messagingSenderId: "877877348030"
+        };
+        firebase.initializeApp(config);
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                message: 'Upload a photo'
+            },
+            methods: {
+                upload: function (e) {
+                    const file = this.$refs.image.files[0];
+                    const ref = firebase.storage().ref();
+                    const name = (+new Date()) + '-' + file.name;
+                    const metadata = { contentType: file.type };
+                    const task = ref.child(name).put(file, metadata);
+                    task
+                        .then(snapshot => snapshot.ref.getDownloadURL())
+                        .then(url => {
+                            console.log(url);
+                            this.message = url;
+                        });
+
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
