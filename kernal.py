@@ -55,10 +55,17 @@ def threshold(image, thresh):
                 image[i][j] = 0
     return image
 
- def rankRows(vector, n):
-     indices = [-1] * n
-     for i in range(len(vector)):
-         if 
+def rankRows(vector, n):
+    max = [-1] * n
+    for i in range(len(vector)):
+        added = False
+        j = 0
+        while not added and j < n:
+            if vector[max[j]] < vector[i]:
+                added = True
+                max[j] = i
+            j += 1
+    return max
 
 
 ker1 = np.array([[-1, -2, -1],   #3x3 kernel
@@ -69,6 +76,14 @@ ker1 = np.array([[-1, -2, -1],   #3x3 kernel
 testim= np.asarray(Image.open('./test.jpg').convert('L'))
 
 rows = rowSum(testim)
+rows = rankRows(rows, 5)
+
+newtest = testim.copy()
+newtest.setflags(write=1)
+for i in rows:
+    for pix in range(len(newtest[i])):
+        newtest[i][pix] = 255
+Image.fromarray(newtest).save('newtest.jpg')
 
 print(rows)
 #im = Image.fromarray(newImage).convert('L')
