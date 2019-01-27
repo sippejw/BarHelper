@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 #image = np.asarray(Image.open('./images/raw/image.jpg').convert('L'))
-image = './images/raw/image.jpg'
+image = './images/raw/blank-background.jpg'
 def colConvolude(image,  thresh):
 
     kernal = np.array([[1, 1, 0, -1, -1],   #5x5 kernel
-    [1, 2, 0, -2, -1],
-    [2, 3, 0, -3, -2],
-    [1, 2, 0, -2, -1],
-    [1, 1, 0, -1, -1]])
+                       [1, 2, 0, -2, -1],
+                       [2, 3, 0, -3, -2],
+                       [1, 2, 0, -2, -1],
+                       [1, 1, 0, -1, -1]])
 
     if len(image)>1024 or len(image[0])>512:
         image = resize(image)
@@ -134,33 +134,30 @@ def main(infile):
     cols = colSum(colImage)
     cols = rankCol(cols, 5)
     
-    return rows[2]/len(image)    
-    
-#rowImage= rowConvolude(image, 128)
-#colImage= colConvolude(image, 80)
-##testim= np.asarray(Image.open('./test.jpg').convert('L'))
-#
-#rows = rowSum(rowImage)
-#rows = rankRow(rows, 5)
-#cols = colSum(colImage)
-#cols = rankCol(cols, 5)
-#
-#newtest = np.asarray(Image.fromarray(colImage.copy()).convert('L')).copy()
-#newtest.setflags(write=1)
-#for i in rows:
-#    for pix in range(len(newtest[i])):
-#        newtest[i][pix] = 255
-#
-#for i in cols:
-#    for pix in range(len(newtest)):
-#        newtest[pix][i] = 255
-#Image.fromarray(newtest).save('newtest.jpg')
+    return rows[2]/len(image)
 
-print(main(image))
+image= np.asarray(Image.open(image).convert('L'))
+rowImage= rowConvolude(image, 128)
+colImage= colConvolude(image, 80)
+#testim= np.asarray(Image.open('./test.jpg').convert('L'))
 
-#im = Image.fromarray(newImage).convert('L')
-#im.save('./test.jpg')
+rows = rowSum(rowImage)
+rows = rankRow(rows, 5)
+cols = colSum(colImage)
+cols = rankCol(cols, 5)
 
+newtest = np.asarray(Image.fromarray(colImage.copy()).convert('L')).copy()
+newtest.setflags(write=1)
+for i in rows:
+    for pix in range(len(newtest[i])):
+        newtest[i][pix] = 255
+
+for i in cols:
+    for pix in range(len(newtest)):
+        newtest[pix][i] = 255
+Image.fromarray(newtest).save('newtest.jpg')
+
+#print(main(image))
 
 #plt.imshow(imagen_nueva)  #Show new image
 #plt.gray()
