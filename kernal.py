@@ -4,6 +4,7 @@ import scipy
 from scipy import misc
 import matplotlib.pyplot as plt
 from PIL import Image
+import cv2
 
 #image = np.asarray(Image.open('./images/raw/image.jpg').convert('L'))
 image = './perf3.jpg'
@@ -58,7 +59,7 @@ def rowConvolude(image, thresh):
 def colSum(image):
     transImage = np.transpose(image)
     (dim_x, dim_y) = np.shape(transImage)
-    print(dim_x, dim_y)
+    #print(dim_x, dim_y)
     kernal = [[1] * dim_y, [2] * dim_y, [1] * dim_y] # for some reason y is the x dim
     sumVector= np.zeros(dim_x) #the new image. the same size as the image I will filter
 
@@ -73,7 +74,7 @@ def colSum(image):
 
 def rowSum(image):
     (dim_x, dim_y) = np.shape(image)
-    print(dim_x, dim_y)
+    #print(dim_x, dim_y)
     kernal = [[1] * dim_y, [2] * dim_y, [1] * dim_y] # for some reason y is the x dim
     sumVector= np.zeros(dim_y) #the new image. the same size as the image I will filter
 
@@ -144,8 +145,8 @@ def rankCol(vector, n):
 
 def volume(image, colin, rowin):
 
-    print("colin: " + str(colin))
-    print("rowin: " + str(rowin))
+    #print("colin: " + str(colin))
+    #print("rowin: " + str(rowin))
 
     column_first_5 = statistics.median(colin[0][0:5])
     column_last_5 = statistics.median(colin[0][5:10])
@@ -163,18 +164,21 @@ def volume(image, colin, rowin):
     
 def main(infile):
     image= np.asarray(Image.open(infile).convert('L'))
-    rowImage= rowConvolude(image, 128)
-    colImage= colConvolude(image, 80)
-
+#    rowImage= rowConvolude(image, 128)
+#    colImage= colConvolude(image, 80)
+    rowImage = cv2.Canny(image, 90,128)
+    colImage = rowImage
     rows = rowSum(rowImage)
     rows = rankRow(rows,5)
     cols = colSum(colImage)
     cols = rankCol(cols, 10)
 
-    print( 750 * volume(rowImage, cols, rows) )
+    print("Volume:",  750 * volume(rowImage, cols, rows), "ml")
 
     return volume(rowImage, cols, rows)
+
 main(input("Enter filename: "))
+
 '''
 image= np.asarray(Image.open(image).convert('L'))
 rowImage= rowConvolude(image, 128)
